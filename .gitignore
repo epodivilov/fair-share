@@ -1,0 +1,7 @@
+node_modules
+.env
+.cursor
+.turbo
+dist
+.svelte-kit
+.DS_Store
