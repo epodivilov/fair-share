@@ -1,30 +1,49 @@
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { checkConnection } from "./infrastructure/database";
+import { serve } from "@hono/node-server";
 
-const PORT = parseInt(process.env.PORT ?? "3000");
+import { databaseManager } from "./infrastructure/database";
+
+const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
 const app = new Hono();
 
 app.get("/health", async (c) => {
   try {
-    await checkConnection();
+    await databaseManager.checkConnection();
 
     return c.json({ status: "ok" });
   } catch (error) {
-    return new Response("Service Unavailable", {
-      status: 503,
-    });
+    return new Response("Service Unavailable", { status: 503 });
   }
 });
 
-serve(
-  {
-    fetch: app.fetch,
-    port: PORT,
-  },
-  async (info) => {
-    await checkConnection();
-    console.log(`Server is running on http://localhost:${info.port}`);
+async function startServer() {
+  try {
+    await databaseManager.connect();
+
+    const server = serve(
+      {
+        fetch: app.fetch,
+        port: PORT,
+      },
+      (info) => {
+        console.log(`Server is running on http://localhost:${info.port}`);
+      }
+    );
+
+    const shutdown = async () => {
+      console.log("Gracefully shutting down...");
+      server.close();
+      await databaseManager.disconnect();
+      process.exit(0);
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
   }
-);
+}
+
+startServer();

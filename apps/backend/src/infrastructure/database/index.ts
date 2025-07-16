@@ -2,31 +2,77 @@ import { Pool } from "pg";
 import { Kysely, PostgresDialect, sql } from "kysely";
 
 interface Database {
-  // Тут будут определены таблицы
+  // Определения таблиц будут добавлены здесь
 }
 
-const DATABASE_URL = process.env.DATABASE_URL;
+class DatabaseManager {
+  private static instance: DatabaseManager;
 
-if (!DATABASE_URL) {
-  throw new Error("DATABASE_URL is not set");
-}
+  private dbInstance: Kysely<Database> | null = null;
 
-const dialect = new PostgresDialect({
-  pool: new Pool({
-    connectionString: DATABASE_URL,
-  }),
-});
+  private constructor(private readonly connectionString: string) {}
 
-export const db = new Kysely<Database>({
-  dialect,
-});
+  public static getInstance(databaseUrl?: string): DatabaseManager {
+    if (!databaseUrl) {
+      throw new Error("DATABASE_URL is not set.");
+    }
 
-export const checkConnection = async () => {
-  try {
-    await sql`SELECT 1`.execute(db);
-    console.log("Database connection successful");
-  } catch (error) {
-    console.error("Database connection failed", error);
-    process.exit(1);
+    if (!DatabaseManager.instance) {
+      DatabaseManager.instance = new DatabaseManager(databaseUrl);
+    }
+
+    return DatabaseManager.instance;
   }
-};
+
+  public get db(): Kysely<Database> {
+    if (!this.dbInstance) {
+      throw new Error("Database connection not established. Call connect() first.");
+    }
+
+    return this.dbInstance;
+  }
+
+  public async connect(): Promise<void> {
+    if (this.dbInstance) {
+      console.log("Database connection already established.");
+      return;
+    }
+
+    const dialect = new PostgresDialect({
+      pool: new Pool({
+        connectionString: this.connectionString,
+      }),
+    });
+
+    this.dbInstance = new Kysely<Database>({
+      dialect,
+    });
+
+    await this.checkConnection();
+  }
+
+  public async disconnect(): Promise<void> {
+    if (this.dbInstance) {
+      await this.dbInstance.destroy();
+      this.dbInstance = null;
+
+      console.log("Database connection pool closed.");
+    }
+  }
+
+  public async checkConnection(): Promise<void> {
+    try {
+      if (!this.dbInstance) {
+        throw new Error("Database connection not established. Call connect() first.");
+      }
+
+      await sql`SELECT 1`.execute(this.dbInstance);
+      console.log("Database connection successful.");
+    } catch (error) {
+      console.error("Database connection failed.", error);
+      throw error;
+    }
+  }
+}
+
+export const databaseManager = DatabaseManager.getInstance(process.env.DATABASE_URL);
