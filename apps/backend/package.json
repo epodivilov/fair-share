@@ -4,21 +4,35 @@
   "private": true,
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "build": "tsup",
     "type-check": "tsc --noEmit",
     "test": "echo 'Add test script here'",
     "lint": "echo 'Add lint script here'"
   },
   "dependencies": {
     "@hono/node-server": "^1.16.0",
-    "hono": "^4.8.5"
+    "hono": "^4.8.5",
+    "kysely": "^0.28.2",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
-    "tsx": "^4.7.1",
-    "typescript": "^5.8.3",
     "@fair-share/config-eslint": "workspace:*",
-    "@fair-share/config-typescript": "workspace:*"
+    "@fair-share/config-typescript": "workspace:*",
+    "@types/node": "^20.11.17",
+    "@types/pg": "^8.15.4",
+    "tsup": "^8.5.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-arm64-gnu": "^4.0.0"
+  },
+  "tsup": {
+    "entry": [
+      "src/index.ts"
+    ],
+    "sourcemap": true,
+    "clean": true
   }
 }
