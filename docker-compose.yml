@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  # --- Database Service ---
+  postgres:
+    container_name: fair-share-postgres
+    image: postgres:16.3-alpine
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - fair-share-postgres-data:/var/lib/postgresql/data
+    networks:
+      - fair-share-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Backend Service ---
+  # backend:
+  #   container_name: fair-share-backend
+  #   build:
+  #     context: ./apps/backend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
+  #     PORT: 3000
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - fair-share-net
+
+# --- Volumes Definition ---
+volumes:
+  fair-share-postgres-data:
+    name: fair-share-postgres-data
+
+# --- Network Definition ---
+networks:
+  fair-share-net:
+    name: fair-share-net
+    driver: bridge

@@ -6,3 +6,8 @@ dist
 .svelte-kit
 .DS_Store
 .temp
+*.pem
+*.p12
+
+# Docker
+docker-compose.override.yml
