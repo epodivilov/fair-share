@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # --- Database Service ---
   postgres:
@@ -22,21 +20,21 @@ services:
       retries: 5
 
   # --- Backend Service ---
-  # backend:
-  #   container_name: fair-share-backend
-  #   build:
-  #     context: ./apps/backend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
-  #     PORT: 3000
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - fair-share-net
+  backend:
+    container_name: fair-share-backend
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fair-share-net
 
 # --- Volumes Definition ---
 volumes:
