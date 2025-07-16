@@ -6,6 +6,7 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "type-check": "tsc --noEmit",
     "test": "echo 'Add test script here'",
     "lint": "echo 'Add lint script here'"
   },
